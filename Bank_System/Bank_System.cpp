@@ -664,6 +664,8 @@ void startProgram() {
 
         applyClientChoice(choice);
 
+        std::cout << "Ya Rab\n";
+
     } while (choice != EXIT);
 }
 
