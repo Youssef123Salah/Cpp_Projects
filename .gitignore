@@ -400,6 +400,7 @@ FodyWeavers.xsd
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+0
 
 # JetBrains Rider
 *.sln.iml
