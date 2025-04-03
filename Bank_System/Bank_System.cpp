@@ -46,6 +46,7 @@ struct sClient {
     std::string name;
     std::string phoneNum;
     float balance;
+    bool isDeleted = false;
 };
 
 
@@ -89,6 +90,8 @@ void readUpdatedClientData(sClient& client);
 
 // helper functions (declaration)
 
+void addClient(const std::vector <sClient>& vClients);
+
 int getClientIndex(const std::string& accountNum, const std::vector <sClient>& vClients);
 
 sClient lineToRecord(const std::string& line, const std::string& sep = SEPARATOR);
@@ -102,8 +105,6 @@ void processUpdatingClient(const std::string& accountNum, std::vector <sClient>&
 void processRemovingClient(const std::string& accountNum, std::vector <sClient>& vClients);
 
 bool confirmTransaction(int depositAmount, float& balance, bool isDeposit = true);
-
-void pauseThenClear();
 
 bool isClientExists(int index);
 
@@ -345,6 +346,12 @@ void readUpdatedClientData(sClient& client) {
 
 // helper functions (definition)
 
+void addClient(const std::vector <sClient>& vClients) {
+
+    sClient client = readClientData(vClients);
+    addLineToFile(recordToLine(client), CLIENTS_FILE);
+}
+
 int getClientIndex(const std::string& accountNum, const std::vector <sClient>& vClients) {
 
     int index = 0;
@@ -389,18 +396,12 @@ std::string recordToLine(const sClient& client, const std::string& sep) {
     return line;
 }
 
-void pauseThenClear() {
+void returnToMenu(const std::string& menu) {
 
+    std::cout << "\nPress any key to return to " << menu << "...";
     system("pause>0");
 
     clearScreen();
-}
-
-void returnToMenu(const std::string& menu = menu::MAIN_MENU) {
-
-    std::cout << "\nPress any key to return to " << menu << "...";
-    
-    pauseThenClear();
 }
 
 void processUpdatingClient(const std::string& accountNum, std::vector <sClient>& vClients) {
@@ -438,8 +439,9 @@ void processRemovingClient(const std::string& accountNum, std::vector <sClient>&
 
         if (toupper(sureToUpdate) == 'Y') {
 
-            vClients.erase(vClients.begin() + index);
+            vClients[index].isDeleted = false;
             saveClientsToFile(vClients);
+            vClients = loadClientsFromFile();
         }
     }
 
@@ -596,7 +598,10 @@ void saveClientsToFile(const std::vector <sClient> vClients, const std::string& 
 
         for (const sClient& client : vClients) {
 
-           file << recordToLine(client) << '\n';
+            if (client.isDeleted == false) {
+
+                file << recordToLine(client) << '\n';
+            }
         }
 
         file.close();
@@ -619,9 +624,8 @@ void addClients() {
     do {
 
         std::cout << "\nAdding New Client:\n\n";
-        
-        sClient client = readClientData(vClients);
-        addLineToFile(recordToLine(client), CLIENTS_FILE);
+
+        addClient(vClients);
 
         addOtherClient = readChar("\nDo you want to add another client (Y/N):");
 
