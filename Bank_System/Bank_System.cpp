@@ -11,6 +11,11 @@
 const std::string CLIENTS_FILE = "CLIENTS.txt";
 const std::string SEPARATOR = " /##/ ";
 
+namespace menu {
+
+    const std::string MAIN_MENU = "Main Menu";
+    const std::string TRANSACTIONS_MENU = "Transactions Menu";
+}
 
 // types (enums & structs)
 
@@ -21,7 +26,16 @@ enum eMainMenu {
     UPDATE_CLIENT = 3,
     REMOVE_CLIENT = 4,
     FIND_CLIENT = 5,
-    EXIT = 6,
+    TRANSACTIONS = 6,
+    EXIT = 7,
+};
+
+enum eTransactionsMenu {
+
+    DEPOSIT = 1,
+    WITHDRAW = 2,
+    SHOW_ALL_BALANCES = 3,
+    RETURN_TO_MAIN_MENU = 4,
 };
 
 
@@ -32,7 +46,6 @@ struct sClient {
     std::string name;
     std::string phoneNum;
     float balance;
-    bool isDeleted = false;
 };
 
 
@@ -82,13 +95,17 @@ sClient lineToRecord(const std::string& line, const std::string& sep = SEPARATOR
 
 std::string recordToLine(const sClient& client, const std::string& sep = SEPARATOR);
 
-void returnToMainMenu();
+void returnToMenu(const std::string& menu = menu::MAIN_MENU);
 
 void processUpdatingClient(const std::string& accountNum, std::vector <sClient>& vClients);
 
 void processRemovingClient(const std::string& accountNum, std::vector <sClient>& vClients);
 
-void addClient(const std::vector <sClient>& vClients);
+bool confirmTransaction(int depositAmount, float& balance, bool isDeposit = true);
+
+void pauseThenClear();
+
+bool isClientExists(int index);
 
 
 // output functions (declaration)
@@ -100,6 +117,14 @@ void printClientsListHeader(int numOfClients);
 void printClientRecord(const sClient& client);
 
 void printClientCard(const sClient& client);
+
+void printClientNotFounded(const std::string& accountNum);
+
+void printTransactionsMenu();
+
+void printBalancesListHeader(int numOfClients);
+
+void printClientBalance(const sClient& client);
 
 
 // data functions (declaration)
@@ -120,6 +145,16 @@ void updateClient();
 void removeClient();
 
 void findClient();
+
+void Deposit();
+
+void Withdraw();
+
+void showAllBalances();
+
+void applyTransaction(eTransactionsMenu choice);
+
+void Transactions();
 
 void Exit();
 
@@ -354,19 +389,25 @@ std::string recordToLine(const sClient& client, const std::string& sep) {
     return line;
 }
 
-void returnToMainMenu() {
+void pauseThenClear() {
 
-    std::cout << "\nPress any key to return to main menu...";
     system("pause>0");
 
     clearScreen();
+}
+
+void returnToMenu(const std::string& menu = menu::MAIN_MENU) {
+
+    std::cout << "\nPress any key to return to " << menu << "...";
+    
+    pauseThenClear();
 }
 
 void processUpdatingClient(const std::string& accountNum, std::vector <sClient>& vClients) {
 
     int index = getClientIndex(accountNum, vClients);
 
-    if (index != -1) {
+    if (isClientExists(index)) {
 
         printClientCard(vClients[index]);
 
@@ -382,14 +423,14 @@ void processUpdatingClient(const std::string& accountNum, std::vector <sClient>&
     }
 
     else
-        std::cout << "\nClient with account number [" << accountNum << "] isn't founded\n";
+        printClientNotFounded(accountNum);
 }
 
 void processRemovingClient(const std::string& accountNum, std::vector <sClient>& vClients) {
 
     int index = getClientIndex(accountNum, vClients);
 
-    if (index != -1) {
+    if (isClientExists(index)) {
 
         printClientCard(vClients[index]);
 
@@ -397,20 +438,39 @@ void processRemovingClient(const std::string& accountNum, std::vector <sClient>&
 
         if (toupper(sureToUpdate) == 'Y') {
 
-            vClients[index].isDeleted = false;
+            vClients.erase(vClients.begin() + index);
             saveClientsToFile(vClients);
         }
     }
 
     else
-        std::cout << "\nClient with account number [" << accountNum << "] isn't founded\n";
+        printClientNotFounded(accountNum);
 }
 
-void addClient(const std::vector <sClient>& vClients) {
+bool confirmTransaction(int amount, float& balance, bool isDeposit) {
 
-    sClient client = readClientData(vClients);
+    char confirm = readChar("Are you sure you want to do this transaction (Y/N):");
 
-    addLineToFile(recordToLine(client), CLIENTS_FILE);
+    if (toupper(confirm) == 'Y') {
+        
+        if (!isDeposit)
+            amount *= -1;
+
+        balance += amount;
+
+
+        std::cout << "\nNew Account Balance: $" << balance << '\n';
+
+
+        return true;
+    }
+
+    return false;
+}
+
+bool isClientExists(int index) {
+
+    return (index != -1);
 }
 
 
@@ -418,16 +478,17 @@ void addClient(const std::vector <sClient>& vClients) {
 
 void printMainMenu() {
 
-    std::cout << "================================\n";
+    std::cout << "=============================\n";
     std::cout << "\tMain Menu\n";
-    std::cout << "================================\n";
+    std::cout << "=============================\n";
     std::cout << "[1] Add New Client\n";
     std::cout << "[2] Show All Clients\n";
     std::cout << "[3] Update Client\n";
     std::cout << "[4] Remove Client\n";
     std::cout << "[5] Find Client\n";
-    std::cout << "[6] Exit\n";
-    std::cout << "================================\n";
+    std::cout << "[6] Transactions\n";
+    std::cout << "[7] Exit\n";
+    std::cout << "=============================\n";
 }
 
 void printClientsListHeader(int numOfClients) {
@@ -460,6 +521,42 @@ void printClientCard(const sClient& client) {
     std::cout << "\nClient Name: " << client.name;
     std::cout << "\nPhone Number: " << client.phoneNum;
     std::cout << "\nBalance: " << client.balance << '\n';
+}
+
+void printClientNotFounded(const std::string& accountNum) {
+
+    std::cout << "\nClient with account number [" << accountNum << "] isn't founded\n";
+}
+
+void printTransactionsMenu() {
+
+    std::cout << "=============================\n";
+    std::cout << "\tTransactions Menu\n";
+    std::cout << "=============================\n";
+    std::cout << "[1] Deposit\n";
+    std::cout << "[2] Withdraw\n";
+    std::cout << "[3] Show All Balances\n";
+    std::cout << "[4] Return To Main Menu\n";
+    std::cout << "=============================\n";
+}
+
+void printBalancesListHeader(int numOfClients) {
+
+    std::cout << '\n' << "\t\t\tClients List [" << numOfClients << "] Client(s)\n";
+
+    std::cout << std::left;
+    std::cout << "\n--------------------------------------------------------------------------------------------\n\n";
+    std::cout << "| " << std::setw(17) << "Account Number";
+    std::cout << "| " << std::setw(30) << "Client Name";
+    std::cout << "| " << std::setw(10) << "Balance";
+    std::cout << "\n\n--------------------------------------------------------------------------------------------\n";
+}
+
+void printClientBalance(const sClient& client) {
+
+    std::cout << "| " << std::setw(17) << client.accountNum;
+    std::cout << "| " << std::setw(30) << client.name;
+    std::cout << "| $" << std::setw(10) << client.balance << "\n\n";
 }
 
 
@@ -499,10 +596,7 @@ void saveClientsToFile(const std::vector <sClient> vClients, const std::string& 
 
         for (const sClient& client : vClients) {
 
-            if (client.isDeleted == false) {
-
-                file << recordToLine(client) << '\n';
-            }
+           file << recordToLine(client) << '\n';
         }
 
         file.close();
@@ -525,13 +619,15 @@ void addClients() {
     do {
 
         std::cout << "\nAdding New Client:\n\n";
-        addClient(vClients);
+        
+        sClient client = readClientData(vClients);
+        addLineToFile(recordToLine(client), CLIENTS_FILE);
 
         addOtherClient = readChar("\nDo you want to add another client (Y/N):");
 
     } while (toupper(addOtherClient) == 'Y');
 
-    returnToMainMenu();
+    returnToMenu();
 }
 
 void showAllClients() {
@@ -551,7 +647,7 @@ void showAllClients() {
 
     std::cout << "\n-------------------------------------------------------------------------------------------\n";
 
-    returnToMainMenu();
+    returnToMenu();
 }
 
 void updateClient() {
@@ -566,7 +662,7 @@ void updateClient() {
 
     processUpdatingClient(accountNum, vClients);
 
-    returnToMainMenu();
+    returnToMenu();
 }
 
 void removeClient() {
@@ -581,7 +677,7 @@ void removeClient() {
 
     processRemovingClient(accountNum, vClients);
 
-    returnToMainMenu();
+    returnToMenu();
 }
 
 void findClient() {
@@ -596,16 +692,142 @@ void findClient() {
 
     int index = getClientIndex(accountNum, vClients);
 
-    if (index != -1) {
+    if (isClientExists(index)) {
 
         printClientCard(vClients[index]);
     }
 
     else
-        std::cout << "\nClient isn't founded\n";
+        printClientNotFounded(accountNum);
 
 
-    returnToMainMenu();
+    returnToMenu();
+}
+
+void Deposit() {
+
+    std::cout << "\t\t------------------------\n";
+    std::cout << "\t\t\tDeposit\n";
+    std::cout << "\t\t------------------------\n\n";
+
+    std::vector <sClient> vClients = loadClientsFromFile();
+
+    std::string accountNum = readAccountNum();
+    int index = getClientIndex(accountNum, vClients);
+
+    if (isClientExists(index)) {
+
+        printClientCard(vClients[index]);
+
+        int depositAmount = readPositiveNum("\nEnter deposit amount:", " $");
+
+        if (confirmTransaction(depositAmount, vClients[index].balance)) {
+
+            saveClientsToFile(vClients);
+        }
+    }
+
+    else
+        printClientNotFounded(accountNum);
+
+    returnToMenu(menu::TRANSACTIONS_MENU);
+}
+
+void Withdraw() {
+
+    std::cout << "\t\t------------------------\n";
+    std::cout << "\t\t\tWithdraw\n";
+    std::cout << "\t\t------------------------\n\n";
+
+    std::vector <sClient> vClients = loadClientsFromFile();
+
+    std::string accountNum = readAccountNum();
+    int index = getClientIndex(accountNum, vClients);
+
+    if (isClientExists(index)) {
+
+        printClientCard(vClients[index]);
+
+        int withdrawAmount = readPositiveNum("\nEnter withdraw amount:", " $");
+
+        while (withdrawAmount > vClients[index].balance) {
+
+            std::cout << "\nWithdraw is bigger than account balance\n";
+            std::cout << "Your Current Balance: " << vClients[index].balance << '\n';
+        }
+
+        if (confirmTransaction(withdrawAmount, vClients[index].balance, false)) {
+
+            saveClientsToFile(vClients);
+        }
+    }
+
+    else
+        printClientNotFounded(accountNum);
+
+    returnToMenu(menu::TRANSACTIONS_MENU);
+}
+
+void showAllBalances() {
+
+    std::cout << "\t\t-------------------------------\n";
+    std::cout << "\t\t\tShow All Balances\n";
+    std::cout << "\t\t-------------------------------\n";
+
+    std::vector <sClient> vClients = loadClientsFromFile();
+
+    printBalancesListHeader(vClients.size());
+
+    int totalBalance = 0;
+
+    for (const sClient& client : vClients) {
+
+        printClientBalance(client);
+        totalBalance += client.balance;
+    }
+
+    returnToMenu(menu::TRANSACTIONS_MENU);
+}
+
+void applyTransaction(eTransactionsMenu choice) {
+
+    clearScreen();
+
+    switch (choice) {
+
+    case eTransactionsMenu::DEPOSIT:
+
+        Deposit();
+        break;
+
+    case eTransactionsMenu::WITHDRAW:
+
+        Withdraw();
+        break;
+
+    case eTransactionsMenu::SHOW_ALL_BALANCES:
+
+        showAllBalances();
+        break;
+
+    case eTransactionsMenu::RETURN_TO_MAIN_MENU:
+
+        return;
+    }
+}
+
+void Transactions() {
+
+    eTransactionsMenu choice;
+
+    do {
+
+        printTransactionsMenu();
+        choice = (eTransactionsMenu)readMenuChoice(1, 4);
+
+        applyTransaction(choice);
+
+    } while (choice != eTransactionsMenu::RETURN_TO_MAIN_MENU);
 }
 
 void Exit() {
@@ -646,6 +868,11 @@ void applyClientChoice(eMainMenu choice) {
         findClient();
         break;
 
+    case eMainMenu::TRANSACTIONS:
+
+        Transactions();
+        break;
+
     case eMainMenu::EXIT:
 
         Exit();
@@ -663,8 +890,6 @@ void startProgram() {
         choice = (eMainMenu)readMenuChoice(1, 6);
 
         applyClientChoice(choice);
-
-        std::cout << "Ya Rab\n";
 
     } while (choice != EXIT);
 }
