@@ -132,7 +132,7 @@ int readPermissionsToSet();
 
 void addClient(const std::vector <sClient>& vClients);
 
-int getClientIndex(const std::string& accountNum, const std::vector <sClient>& vClients);
+int getClientIndexByAccountNum(const std::string& accountNum, const std::vector <sClient>& vClients);
 
 sClient clientLineToRecord(const std::string& line);
 
@@ -162,7 +162,7 @@ int getUserIndexByName(const std::string& username, const std::vector <sUser>& v
 
 int getUserIndexByNameAndPassword(const std::string& username, int password, const std::vector <sUser>& vUsers);
 
-void processTransactions(int index, std::vector <sClient>& vClients);
+void processTransactions(std::vector <sClient>& vClients, bool isDeposit);
 
 bool isAllowedPermission(int permissions, ePermissions permissionToCheck);
 
@@ -384,7 +384,7 @@ sClient readClientData(const std::vector <sClient>& vClients) {
     sClient client;
 
     client.accountNum = readAccountNum();
-    int index = getClientIndex(client.accountNum, vClients);
+    int index = getClientIndexByAccountNum(client.accountNum, vClients);
 
     while (!isClientExistsByIndex(index)) {
 
@@ -428,7 +428,7 @@ int readPermissionsToSet() {
     if (toupper(fullAccess) != 'Y') {
 
         int permissions = 0;
-        
+
 
         readCheckAddPermission("\nAdd New Client", permissions, ePermissions::ADD_CLIENT);
 
@@ -479,7 +479,7 @@ void addClient(const std::vector <sClient>& vClients) {
     addLineToFile(clientRecordToLine(client), file::CLIENTS_FILE);
 }
 
-int getClientIndex(const std::string& accountNum, const std::vector <sClient>& vClients) {
+int getClientIndexByAccountNum(const std::string& accountNum, const std::vector <sClient>& vClients) {
 
     int index = 0;
 
@@ -557,7 +557,7 @@ void returnToMenu(const std::string& menu) {
 
 void processUpdating(const std::string& accountNum, std::vector <sClient>& vClients) {
 
-    int index = getClientIndex(accountNum, vClients);
+    int index = getClientIndexByAccountNum(accountNum, vClients);
 
     if (isClientExistsByIndex(index)) {
 
@@ -580,7 +580,7 @@ void processUpdating(const std::string& accountNum, std::vector <sClient>& vClie
 
 void processRemoving(const std::string& accountNum, std::vector <sClient>& vClients) {
 
-    int index = getClientIndex(accountNum, vClients);
+    int index = getClientIndexByAccountNum(accountNum, vClients);
 
     if (isClientExistsByIndex(index)) {
 
@@ -601,32 +601,32 @@ void processRemoving(const std::string& accountNum, std::vector <sClient>& vClie
 }
 
 bool confirmTransaction(int amount, float& balance, bool isDeposit) {
-        
-        if (!isDeposit) {
 
-            while (amount > balance) {
+    if (!isDeposit) {
 
-                std::cout << "\nWithdraw Amount is more than your balance, ";
-                std::cout << "Current Balance --> $" << balance << '\n';
+        while (amount > balance) {
 
-                amount = readPositiveNum("Enter valid withdraw amount:", " $");
-            }
+            std::cout << "\nWithdraw Amount is more than your balance, ";
+            std::cout << "Current Balance --> $" << balance << '\n';
 
-            amount *= -1;
+            amount = readPositiveNum("Enter valid withdraw amount:", " $");
         }
 
-        char confirm = readChar("\nAre you sure you want to do this transaction (Y/N):");
+        amount *= -1;
+    }
 
-        if (toupper(confirm) == 'Y') {
+    char confirm = readChar("\nAre you sure you want to do this transaction (Y/N):");
 
-            balance += amount;
+    if (toupper(confirm) == 'Y') {
 
-            std::cout << "\nNew Account Balance: $" << balance << '\n';
+        balance += amount;
 
-            return true;
-        }
+        std::cout << "\nNew Account Balance: $" << balance << '\n';
 
-        return false;
+        return true;
+    }
+
+    return false;
 }
 
 bool isClientExistsByIndex(int index) {
@@ -713,7 +713,7 @@ void processUpdating(int index, std::vector <sUser> vUsers) {
 void processTransactions(std::vector <sClient>& vClients, bool isDeposit = true) {
 
     std::string accountNum = readAccountNum();
-    int index = getClientIndex(accountNum, vClients);
+    int index = getClientIndexByAccountNum(accountNum, vClients);
 
     if (isClientExistsByIndex(index)) {
 
@@ -721,35 +721,9 @@ void processTransactions(std::vector <sClient>& vClients, bool isDeposit = true)
 
         std::string transaction = (isDeposit) ? "deposit" : "withdraw";
 
-        int depositAmount = readPositiveNum("\nEnter " + transaction + " amount: ", " $");
+        float amount = readPositiveNum("\nEnter " + transaction + " amount: ", " $");
 
-        if (confirmTransaction(depositAmount, vClients[index].balance, isDeposit)) {
-
-            saveClientsToFile(vClients);
-        }
-    }
-
-    else
-        printClientNotFound(vClients[index].accountNum);
-}
-
-void processTransactions(int index, std::vector <sClient>& vClients) {
-
-    if (isClientExistsByIndex(index)) {
-
-        printClientCard(vClients[index]);
-
-        int withdrawAmount = readPositiveNum("\nEnter withdraw amount:", " $");
-
-        while (withdrawAmount > vClients[index].balance) {
-
-            std::cout << "\nWithdraw is bigger than account balance, ";
-            std::cout << "Your Current Balance: " << vClients[index].balance << '\n';
-
-            withdrawAmount = readPositiveNum("\nEnter valid withdraw amount:", " $");
-        };
-
-        if (confirmTransaction(withdrawAmount, vClients[index].balance, false)) {
+        if (confirmTransaction(amount, vClients[index].balance, isDeposit)) {
 
             saveClientsToFile(vClients);
         }
@@ -1025,7 +999,7 @@ void addClients(sUser& user) {
 
         } while (toupper(addOtherClient) == 'Y');
     }
-    
+
 
     returnToMenu();
 }
@@ -1124,7 +1098,7 @@ void findClient(const sUser& user) {
 
     std::string accountNum = readAccountNum();
 
-    int index = getClientIndex(accountNum, vClients);
+    int index = getClientIndexByAccountNum(accountNum, vClients);
 
     if (isClientExistsByIndex(index)) {
 
@@ -1237,9 +1211,6 @@ void Transactions(const sUser& user) {
 
         } while (choice != eTransactionsMenu::TRANSAC_RETURN_TO_MAIN_MENU);
     }
-
-    
-    returnToMenu();
 }
 
 void addUser(const std::vector <sUser>& vUsers) {
@@ -1407,7 +1378,7 @@ void manageUsers(const sUser& user) {
         } while (choice != eManageUsersMenu::RETURN_TO_MAIN_MENU);
     }
 
-    
+
     returnToMenu();
 }
 
@@ -1419,44 +1390,44 @@ void applyMainMenuChoice(eMainMenu choice, sUser& user) {
 
     case eMainMenu::MENU_ADD_CLIENT:
 
-            addClients(user);
-            break;
+        addClients(user);
+        break;
 
     case eMainMenu::MENU_SHOW_ALL_CLIENTS:
 
-            showAllClients(user);
-            break;
+        showAllClients(user);
+        break;
 
     case eMainMenu::MENU_UPDATE_CLIENT:
 
-            updateClient(user);
-            break;
+        updateClient(user);
+        break;
 
     case eMainMenu::MENU_REMOVE_CLIENT:
 
-            removeClient(user);
-            break;
+        removeClient(user);
+        break;
 
     case eMainMenu::MENU_FIND_CLIENT:
 
-             findClient(user);
-             break;
+        findClient(user);
+        break;
 
     case eMainMenu::MENU_TRANSACTIONS:
 
-            Transactions(user);
-            break;
+        Transactions(user);
+        break;
 
     case eMainMenu::MENU_MANAGE_USERS:
 
-            manageUsers(user);
-            break;
+        manageUsers(user);
+        break;
 
     case eMainMenu::MENU_LOGOUT:
 
-            Login();
-            break;
-    }   
+        Login();
+        break;
+    }
 }
 
 void startProgram(sUser& user) {
