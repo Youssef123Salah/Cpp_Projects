@@ -57,25 +57,12 @@ enum eManageUsersMenu {
     UPDATE_USER = 3,
     REMOVE_USER = 4,
     FIND_USER = 5,
-<<<<<<< HEAD
-    uRETURN_TO_MAIN_MENU = 6,
-=======
     RETURN_TO_MAIN_MENU = 6,
->>>>>>> update
 };
 
 enum ePermissions {
 
     FULL_ACCESS = -1,
-<<<<<<< HEAD
-    ALLOW_ADD_CLIENT = 1,
-    ALLOW_SHOW_ALL_CLIENTS = 2,
-    ALLOW_UPDATE_CLIENT = 4,
-    ALLOW_REMOVE_CLIENT = 8,
-    ALLOW_FIND_CLIENT = 16,
-    ALLOW_TRANSACTIONS = 32,
-    ALLOW_MANAGE_USERS = 64,
-=======
     ADD_CLIENT = 1,
     SHOW_ALL_CLIENTS = 2,
     UPDATE_CLIENT = 4,
@@ -83,7 +70,6 @@ enum ePermissions {
     FIND_CLIENT = 16,
     TRANSACTIONS = 32,
     MANAGE_USERS = 64,
->>>>>>> update
 };
 
 
@@ -176,17 +162,7 @@ int getUserIndexByName(const std::string& username, const std::vector <sUser>& v
 
 int getUserIndexByNameAndPassword(const std::string& username, int password, const std::vector <sUser>& vUsers);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-void processDeposit(int index, std::vector <sClient>& vClients);
-
-void processWithdraw(int index, std::vector <sClient>& vClients);
-=======
-void processTransactions(int index, std::vector <sClient>& vClients);
->>>>>>> update
-=======
 void processTransactions(std::vector <sClient>& vClients, bool isDeposit);
->>>>>>> update
 
 bool isAllowedPermission(int permissions, ePermissions permissionToCheck);
 
@@ -454,21 +430,6 @@ int readPermissionsToSet() {
         int permissions = 0;
 
 
-<<<<<<< HEAD
-        readCheckAddPermission("\nAdd New Client", permissions, ePermissions::ALLOW_ADD_CLIENT);
-
-        readCheckAddPermission("Show All Clients", permissions, ePermissions::ALLOW_SHOW_ALL_CLIENTS);
-
-        readCheckAddPermission("Update Client", permissions, ePermissions::ALLOW_UPDATE_CLIENT);
-
-        readCheckAddPermission("Remove Client", permissions, ePermissions::ALLOW_REMOVE_CLIENT);
-
-        readCheckAddPermission("Find Client", permissions, ePermissions::ALLOW_FIND_CLIENT);
-
-        readCheckAddPermission("Transactions", permissions, ePermissions::ALLOW_TRANSACTIONS);
-
-        readCheckAddPermission("Manage Users", permissions, ePermissions::ALLOW_MANAGE_USERS);
-=======
         readCheckAddPermission("\nAdd New Client", permissions, ePermissions::ADD_CLIENT);
 
         readCheckAddPermission("Show All Clients", permissions, ePermissions::SHOW_ALL_CLIENTS);
@@ -482,7 +443,6 @@ int readPermissionsToSet() {
         readCheckAddPermission("Transactions", permissions, ePermissions::TRANSACTIONS);
 
         readCheckAddPermission("Manage Users", permissions, ePermissions::MANAGE_USERS);
->>>>>>> update
 
 
         return permissions;
@@ -750,74 +710,20 @@ void processUpdating(int index, std::vector <sUser> vUsers) {
         printUserNotFound(vUsers[index].name);
 }
 
-<<<<<<< HEAD
-void processDeposit(int index, std::vector <sClient>& vClients) {
-=======
 void processTransactions(std::vector <sClient>& vClients, bool isDeposit = true) {
 
     std::string accountNum = readAccountNum();
-<<<<<<< HEAD
-    int index = getClientIndex(accountNum, vClients);
->>>>>>> update
-=======
     int index = getClientIndexByAccountNum(accountNum, vClients);
->>>>>>> update
 
     if (isClientExistsByIndex(index)) {
 
         printClientCard(vClients[index]);
 
-<<<<<<< HEAD
-        int depositAmount = readPositiveNum("\nEnter deposit amount:", " $");
-
-        if (confirmTransaction(depositAmount, vClients[index].balance)) {
-=======
         std::string transaction = (isDeposit) ? "deposit" : "withdraw";
 
         float amount = readPositiveNum("\nEnter " + transaction + " amount: ", " $");
 
-<<<<<<< HEAD
-        if (confirmTransaction(depositAmount, vClients[index].balance, isDeposit)) {
->>>>>>> update
-
-            saveClientsToFile(vClients);
-        }
-    }
-
-    else
-        printClientNotFound(vClients[index].accountNum);
-}
-
-<<<<<<< HEAD
-void processWithdraw(int index, std::vector <sClient>& vClients) {
-=======
-void processTransactions(int index, std::vector <sClient>& vClients) {
->>>>>>> update
-
-    if (isClientExistsByIndex(index)) {
-
-        printClientCard(vClients[index]);
-
-        int withdrawAmount = readPositiveNum("\nEnter withdraw amount:", " $");
-
-        while (withdrawAmount > vClients[index].balance) {
-
-<<<<<<< HEAD
-            std::cout << "\nWithdraw is bigger than account balance\n";
-            std::cout << "Your Current Balance: " << vClients[index].balance << '\n';
-        }
-=======
-            std::cout << "\nWithdraw is bigger than account balance, ";
-            std::cout << "Your Current Balance: " << vClients[index].balance << '\n';
-
-            withdrawAmount = readPositiveNum("\nEnter valid withdraw amount:", " $");
-        };
->>>>>>> update
-
-        if (confirmTransaction(withdrawAmount, vClients[index].balance, false)) {
-=======
         if (confirmTransaction(amount, vClients[index].balance, isDeposit)) {
->>>>>>> update
 
             saveClientsToFile(vClients);
         }
@@ -1068,11 +974,7 @@ std::vector <sUser> loadUsersFromFile() {
 
 void addClients(sUser& user) {
 
-<<<<<<< HEAD
-    if (!isAllowedPermission(user.permissions, ePermissions::ALLOW_ADD_CLIENT)) {
-=======
     if (!isAllowedPermission(user.permissions, ePermissions::ADD_CLIENT)) {
->>>>>>> update
 
         printAccessDenied();
     }
@@ -1104,11 +1006,7 @@ void addClients(sUser& user) {
 
 void showAllClients(const sUser& user) {
 
-<<<<<<< HEAD
-    if (!isAllowedPermission(user.permissions, ePermissions::ALLOW_SHOW_ALL_CLIENTS)) {
-=======
     if (!isAllowedPermission(user.permissions, ePermissions::SHOW_ALL_CLIENTS)) {
->>>>>>> update
 
         printAccessDenied();
     }
@@ -1137,11 +1035,7 @@ void showAllClients(const sUser& user) {
 
 void updateClient(const sUser& user) {
 
-<<<<<<< HEAD
-    if (!isAllowedPermission(user.permissions, ePermissions::ALLOW_UPDATE_CLIENT)) {
-=======
     if (!isAllowedPermission(user.permissions, ePermissions::UPDATE_CLIENT)) {
->>>>>>> update
 
         printAccessDenied();
     }
@@ -1165,11 +1059,7 @@ void updateClient(const sUser& user) {
 
 void removeClient(const sUser& user) {
 
-<<<<<<< HEAD
-    if (!isAllowedPermission(user.permissions, ePermissions::ALLOW_REMOVE_CLIENT)) {
-=======
     if (!isAllowedPermission(user.permissions, ePermissions::REMOVE_CLIENT)) {
->>>>>>> update
 
         printAccessDenied();
         returnToMenu();
@@ -1192,11 +1082,7 @@ void removeClient(const sUser& user) {
 
 void findClient(const sUser& user) {
 
-<<<<<<< HEAD
-    if (!isAllowedPermission(user.permissions, ePermissions::ALLOW_FIND_CLIENT)) {
-=======
     if (!isAllowedPermission(user.permissions, ePermissions::FIND_CLIENT)) {
->>>>>>> update
 
         printAccessDenied();
         returnToMenu();
@@ -1234,14 +1120,7 @@ void Deposit() {
 
     std::vector <sClient> vClients = loadClientsFromFile();
 
-<<<<<<< HEAD
-    std::string accountNum = readAccountNum();
-    int index = getClientIndex(accountNum, vClients);
-
-    processDeposit(index, vClients);
-=======
     processTransactions(vClients);
->>>>>>> update
 
     returnToMenu(menu::TRANSACTIONS);
 }
@@ -1254,14 +1133,7 @@ void Withdraw() {
 
     std::vector <sClient> vClients = loadClientsFromFile();
 
-<<<<<<< HEAD
-    std::string accountNum = readAccountNum();
-    int index = getClientIndex(accountNum, vClients);
-
-    processWithdraw(index, vClients);
-=======
     processTransactions(vClients, false);
->>>>>>> update
 
     returnToMenu(menu::TRANSACTIONS);
 }
@@ -1321,11 +1193,7 @@ void applyTransaction(eTransactionsMenu choice) {
 
 void Transactions(const sUser& user) {
 
-<<<<<<< HEAD
-    if (!isAllowedPermission(user.permissions, ePermissions::ALLOW_TRANSACTIONS)) {
-=======
     if (!isAllowedPermission(user.permissions, ePermissions::TRANSACTIONS)) {
->>>>>>> update
 
         printAccessDenied();
     }
@@ -1341,11 +1209,7 @@ void Transactions(const sUser& user) {
 
             applyTransaction(choice);
 
-<<<<<<< HEAD
-        } while (choice != eTransactionsMenu::RETURN_TO_MAIN_MENU);
-=======
         } while (choice != eTransactionsMenu::TRANSAC_RETURN_TO_MAIN_MENU);
->>>>>>> update
     }
 }
 
@@ -1487,11 +1351,7 @@ void applyManageUsersMenuChoice(eManageUsersMenu choice) {
         findUser();
         break;
 
-<<<<<<< HEAD
-    case eManageUsersMenu::uRETURN_TO_MAIN_MENU:
-=======
     case eManageUsersMenu::RETURN_TO_MAIN_MENU:
->>>>>>> update
 
         return;
     }
@@ -1499,11 +1359,7 @@ void applyManageUsersMenuChoice(eManageUsersMenu choice) {
 
 void manageUsers(const sUser& user) {
 
-<<<<<<< HEAD
-    if (!isAllowedPermission(user.permissions, ePermissions::ALLOW_MANAGE_USERS)) {
-=======
     if (!isAllowedPermission(user.permissions, ePermissions::MANAGE_USERS)) {
->>>>>>> update
 
         printAccessDenied();
     }
@@ -1519,15 +1375,8 @@ void manageUsers(const sUser& user) {
 
             applyManageUsersMenuChoice(choice);
 
-<<<<<<< HEAD
-        } while (choice != eManageUsersMenu::uRETURN_TO_MAIN_MENU);
-=======
         } while (choice != eManageUsersMenu::RETURN_TO_MAIN_MENU);
->>>>>>> update
     }
-
-
-    returnToMenu();
 }
 
 void applyMainMenuChoice(eMainMenu choice, sUser& user) {
@@ -1538,15 +1387,8 @@ void applyMainMenuChoice(eMainMenu choice, sUser& user) {
 
     case eMainMenu::MENU_ADD_CLIENT:
 
-<<<<<<< HEAD
-            addClients(user);
-            break;
-<<<<<<< HEAD
-=======
-=======
         addClients(user);
         break;
->>>>>>> update
 
     case eMainMenu::MENU_SHOW_ALL_CLIENTS:
 
@@ -1554,15 +1396,10 @@ void applyMainMenuChoice(eMainMenu choice, sUser& user) {
         break;
 
     case eMainMenu::MENU_UPDATE_CLIENT:
->>>>>>> update
 
         updateClient(user);
         break;
 
-<<<<<<< HEAD
-            showAllClients(user);
-            break;
-=======
     case eMainMenu::MENU_REMOVE_CLIENT:
 
         removeClient(user);
@@ -1570,37 +1407,6 @@ void applyMainMenuChoice(eMainMenu choice, sUser& user) {
 
     case eMainMenu::MENU_FIND_CLIENT:
 
-<<<<<<< HEAD
-             findClient(user);
-             break;
->>>>>>> update
-
-    case eMainMenu::MENU_TRANSACTIONS:
-
-<<<<<<< HEAD
-            updateClient(user);
-            break;
-
-    case eMainMenu::REMOVE_CLIENT:
-
-            removeClient(user);
-            break;
-
-    case eMainMenu::FIND_CLIENT:
-
-             findClient(user);
-             break;
-
-    case eMainMenu::TRANSACTIONS:
-
-            Transactions(user);
-            break;
-
-    case eMainMenu::MANAGE_USERS:
-=======
-            Transactions(user);
-            break;
-=======
         findClient(user);
         break;
 
@@ -1608,33 +1414,17 @@ void applyMainMenuChoice(eMainMenu choice, sUser& user) {
 
         Transactions(user);
         break;
->>>>>>> update
 
     case eMainMenu::MENU_MANAGE_USERS:
->>>>>>> update
 
         manageUsers(user);
         break;
 
-<<<<<<< HEAD
-    case eMainMenu::LOGOUT:
-
-            Login();
-            break;
-    }
-=======
     case eMainMenu::MENU_LOGOUT:
 
-<<<<<<< HEAD
-            Login();
-            break;
-    }   
->>>>>>> update
-=======
         Login();
         break;
     }
->>>>>>> update
 }
 
 void startProgram(sUser& user) {
