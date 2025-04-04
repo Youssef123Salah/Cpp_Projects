@@ -166,6 +166,8 @@ void processTransactions(std::vector <sClient>& vClients, bool isDeposit);
 
 bool isAllowedPermission(int permissions, ePermissions permissionToCheck);
 
+bool isAdmin(int userPermissions);
+
 
 // output functions (declaration)
 
@@ -659,7 +661,7 @@ void processRemoving(int index, std::vector <sUser>& vUsers) {
 
     if (isUserExistsByIndex(index)) {
 
-        if (vUsers[index].permissions == ePermissions::FULL_ACCESS)
+        if (isAdmin(vUsers[index].permissions))
             std::cout << "\nYou can't delete this user\n";
 
         else {
@@ -688,7 +690,7 @@ void processUpdating(int index, std::vector <sUser> vUsers) {
 
     if (isUserExistsByIndex(index)) {
 
-        if (vUsers[index].permissions == ePermissions::FULL_ACCESS)
+        if (isAdmin(vUsers[index].permissions))
             std::cout << "\nYou can't update info of this user !\n";
 
         else {
@@ -752,6 +754,11 @@ int getUserIndexByNameAndPassword(const std::string& username, int password, con
     }
 
     return USER_NOT_FOUND;
+}
+
+bool isAdmin(int userPermissions) {
+
+    return (userPermissions == ePermissions::FULL_ACCESS);
 }
 
 
