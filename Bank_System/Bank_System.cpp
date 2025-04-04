@@ -176,7 +176,7 @@ void printClientRecord(const sClient& client);
 
 void printClientCard(const sClient& client);
 
-void printClientNotFounded(const std::string& accountNum);
+void printClientNotFound(const std::string& accountNum);
 
 void printTransactionsMenu();
 
@@ -585,7 +585,7 @@ void processUpdating(const std::string& accountNum, std::vector <sClient>& vClie
     }
 
     else
-        printClientNotFounded(accountNum);
+        printClientNotFound(accountNum);
 }
 
 void processRemoving(const std::string& accountNum, std::vector <sClient>& vClients) {
@@ -607,7 +607,7 @@ void processRemoving(const std::string& accountNum, std::vector <sClient>& vClie
     }
 
     else
-        printClientNotFounded(accountNum);
+        printClientNotFound(accountNum);
 }
 
 bool confirmTransaction(int amount, float& balance, bool isDeposit) {
@@ -726,7 +726,7 @@ void processDeposit(int index, std::vector <sClient>& vClients) {
     }
 
     else
-        printClientNotFounded(vClients[index].accountNum);
+        printClientNotFound(vClients[index].accountNum);
 }
 
 void processWithdraw(int index, std::vector <sClient>& vClients) {
@@ -750,7 +750,7 @@ void processWithdraw(int index, std::vector <sClient>& vClients) {
     }
 
     else
-        printClientNotFounded(vClients[index].accountNum);
+        printClientNotFound(vClients[index].accountNum);
 }
 
 bool isAllowedPermission(int permissions, ePermissions permissionToCheck) {
@@ -809,7 +809,7 @@ void printClientCard(const sClient& client) {
     std::cout << "\nBalance: " << CURRENCY << client.balance << '\n';
 }
 
-void printClientNotFounded(const std::string& accountNum) {
+void printClientNotFound(const std::string& accountNum) {
 
     std::cout << "\nClient with account number [" << accountNum << "] isn't founded\n";
 }
@@ -1109,7 +1109,7 @@ void findClient() {
     }
 
     else
-        printClientNotFounded(accountNum);
+        printClientNotFound(accountNum);
 
 
     returnToMenu();
@@ -1401,30 +1401,25 @@ void applyMainMenuChoice(eMainMenu choice) {
             addClients();
             break;
 
-
     case eMainMenu::SHOW_ALL_CLIENTS:
 
             showAllClients();
             break;
-
 
     case eMainMenu::UPDATE_CLIENT:
 
             updateClient();
             break;
 
-
     case eMainMenu::REMOVE_CLIENT:
 
             removeClient();
             break;
 
-
     case eMainMenu::FIND_CLIENT:
 
              findClient();
              break;
-
 
     case eMainMenu::TRANSACTIONS:
 
