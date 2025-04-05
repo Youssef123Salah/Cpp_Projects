@@ -164,7 +164,7 @@ int getUserIndexByNameAndPassword(const std::string& username, int password, con
 
 void processTransactions(std::vector <sClient>& vClients, bool isDeposit);
 
-bool isAllowedPermission(int permissions, ePermissions permissionToCheck);
+bool checkPermissionAccess(int permissions, ePermissions permissionToCheck);
 
 bool isAdmin(int userPermissions);
 
@@ -735,7 +735,7 @@ void processTransactions(std::vector <sClient>& vClients, bool isDeposit = true)
         printClientNotFound(vClients[index].accountNum);
 }
 
-bool isAllowedPermission(int permissions, ePermissions permissionToCheck) {
+bool checkPermissionAccess(int permissions, ePermissions permissionToCheck) {
 
     return ((permissions & permissionToCheck) == permissionToCheck);
 }
@@ -758,7 +758,7 @@ int getUserIndexByNameAndPassword(const std::string& username, int password, con
 
 bool isAdmin(int userPermissions) {
 
-    return (userPermissions == ePermissions::FULL_ACCESS);
+    return checkPermissionAccess(userPermissions, ePermissions::FULL_ACCESS);
 }
 
 
@@ -981,7 +981,7 @@ std::vector <sUser> loadUsersFromFile() {
 
 void addClients(sUser& user) {
 
-    if (!isAllowedPermission(user.permissions, ePermissions::ADD_CLIENT)) {
+    if (!checkPermissionAccess(user.permissions, ePermissions::ADD_CLIENT)) {
 
         printAccessDenied();
     }
@@ -1013,7 +1013,7 @@ void addClients(sUser& user) {
 
 void showAllClients(const sUser& user) {
 
-    if (!isAllowedPermission(user.permissions, ePermissions::SHOW_ALL_CLIENTS)) {
+    if (!checkPermissionAccess(user.permissions, ePermissions::SHOW_ALL_CLIENTS)) {
 
         printAccessDenied();
     }
@@ -1042,7 +1042,7 @@ void showAllClients(const sUser& user) {
 
 void updateClient(const sUser& user) {
 
-    if (!isAllowedPermission(user.permissions, ePermissions::UPDATE_CLIENT)) {
+    if (!checkPermissionAccess(user.permissions, ePermissions::UPDATE_CLIENT)) {
 
         printAccessDenied();
     }
@@ -1066,7 +1066,7 @@ void updateClient(const sUser& user) {
 
 void removeClient(const sUser& user) {
 
-    if (!isAllowedPermission(user.permissions, ePermissions::REMOVE_CLIENT)) {
+    if (!checkPermissionAccess(user.permissions, ePermissions::REMOVE_CLIENT)) {
 
         printAccessDenied();
         returnToMenu();
@@ -1089,7 +1089,7 @@ void removeClient(const sUser& user) {
 
 void findClient(const sUser& user) {
 
-    if (!isAllowedPermission(user.permissions, ePermissions::FIND_CLIENT)) {
+    if (!checkPermissionAccess(user.permissions, ePermissions::FIND_CLIENT)) {
 
         printAccessDenied();
         returnToMenu();
@@ -1200,7 +1200,7 @@ void applyTransaction(eTransactionsMenu choice) {
 
 void Transactions(const sUser& user) {
 
-    if (!isAllowedPermission(user.permissions, ePermissions::TRANSACTIONS)) {
+    if (!checkPermissionAccess(user.permissions, ePermissions::TRANSACTIONS)) {
 
         printAccessDenied();
     }
@@ -1366,7 +1366,7 @@ void applyManageUsersMenuChoice(eManageUsersMenu choice) {
 
 void manageUsers(const sUser& user) {
 
-    if (!isAllowedPermission(user.permissions, ePermissions::MANAGE_USERS)) {
+    if (!checkPermissionAccess(user.permissions, ePermissions::MANAGE_USERS)) {
 
         printAccessDenied();
     }
