@@ -91,7 +91,7 @@ int getClientIndexByAccountNum(const std::string& accountNum, std::vector <sClie
 
 bool isClientExistsByAccountNum(const std::string& accountNum, std::vector <sClient>& vClients);
 
-void checkConfirmToSaveClient(int amount, sClient& client);
+void confirmAndSaveTransaction(int amount, sClient& client);
 
 bool processQuickWithdraw(eQuickWithdraw choice, sClient& client);
 
@@ -381,7 +381,7 @@ bool isClientExistsByAccountNum(const std::string& accountNum, std::vector <sCli
     return getClientIndexByAccountNum(accountNum, vClients) != CLIENT_NOT_FOUND;
 }
 
-void checkConfirmToSaveClient(int amount, sClient& client) {
+void confirmAndSaveTransaction(int amount, sClient& client) {
 
     if (confirmTransaction(amount, client.balance)) {
 
@@ -488,7 +488,7 @@ void normalWithdraw(sClient& client) {
         clearScreen();
     }
 
-    checkConfirmToSaveClient(amount, client);
+    confirmAndSaveTransaction(amount, client);
 
     returnToScreen();
 }
