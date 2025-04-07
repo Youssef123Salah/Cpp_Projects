@@ -37,11 +37,11 @@ enum eQuickWithdraw {
 
 struct sClient {
 
-    std::string accountNum = "";
-    int pincode = 0;
-    std::string name = "";
-    std::string phoneNum = "";
-    float balance = 0;
+    std::string accountNum;
+    int pincode;
+    std::string name;
+    std::string phoneNum;
+    float balance;
 };
 
 
@@ -85,15 +85,15 @@ std::vector <sClient> loadClientsFromFile();
 
 void saveClientsToFile(const std::vector <sClient>& vClients);
 
-void saveClientToFile(const sClient& client);
+int getQuickWithdrawValue(eQuickWithdraw value);
 
-int getClientIndexByAccountNum(const std::string& accountNum, std::vector <sClient>& vClients);
+int getClientIndexByAccountNum(const std::string& accountNum, const std::vector <sClient>& vClients);
 
-bool isClientExistsByAccountNum(const std::string& accountNum, std::vector <sClient>& vClients);
+bool isClientExistsByAccountNum(const std::string& accountNum, const std::vector <sClient>& vClients);
 
-void confirmAndSaveTransaction(int amount, sClient& client);
+void confirmAndSaveTransaction(int amount, float& balance, const std::vector <sClient>& vClients, bool isWithdraw = true);
 
-bool processQuickWithdraw(eQuickWithdraw choice, sClient& client);
+bool processQuickWithdraw(eQuickWithdraw choice, sClient& client, const std::vector <sClient>& vClients);
 
 
 // output functions (declaration)
@@ -104,17 +104,22 @@ void printQuickWithdrawMenu(float balance);
 
 bool printAmountExceedBalance(float amount, float balance);
 
+
 // core functions (declaration)
 
-void quickWithdraw(sClient& client);
+void quickWithdraw(sClient& client, const std::vector <sClient>& vClients);
 
-void normalWithdraw(sClient& client);
+void normalWithdraw(sClient& client, const std::vector <sClient>& vClients);
 
-void Deposit(sClient& client);
+void Deposit(sClient& client, const std::vector <sClient>& vClients);
 
 void showBalance(float balance);
 
-void applyMenuChoice(eMainMenu choice, sClient& client);
+void applyMenuChoice(eMainMenu choice, sClient& client, const std::vector <sClient>& vClients);
+
+void startProgram(sClient& client, const std::vector <sClient>& vClients);
+
+sClient processLoginAndGetClient(const std::vector <sClient>& vClients);
 
 void Login();
 
@@ -221,7 +226,7 @@ void clearScreen() {
 
 void returnToScreen(const std::string& screen) {
 
-    std::cout << "\nPress any key to return to " << screen << "...";
+    std::cout << "\nPress any key to return to " << screen << " Screen...";
     system("pause>0");
 
     clearScreen();
@@ -328,21 +333,6 @@ std::vector <sClient> loadClientsFromFile() {
     return vClients;
 }
 
-void saveClientToFile(const sClient& clientToSave) {
-
-    std::vector <sClient> vClients = loadClientsFromFile();
-
-    for (sClient& client : vClients) {
-
-        if (client.accountNum == clientToSave.accountNum) {
-
-            client = clientToSave;
-        }
-    }
-
-    saveClientsToFile(vClients);
-}
-
 void saveClientsToFile(const std::vector <sClient>& vClients) {
 
     std::fstream file;
@@ -360,7 +350,7 @@ void saveClientsToFile(const std::vector <sClient>& vClients) {
     }
 }
 
-int getClientIndexByAccountNum(const std::string& accountNum, std::vector <sClient>& vClients) {
+int getClientIndexByAccountNum(const std::string& accountNum, const std::vector <sClient>& vClients) {
 
     int index = 0;
 
@@ -376,37 +366,56 @@ int getClientIndexByAccountNum(const std::string& accountNum, std::vector <sClie
     return CLIENT_NOT_FOUND;
 }
 
-bool isClientExistsByAccountNum(const std::string& accountNum, std::vector <sClient>& vClients) {
+bool isClientExistsByAccountNum(const std::string& accountNum, const std::vector <sClient>& vClients) {
 
     return getClientIndexByAccountNum(accountNum, vClients) != CLIENT_NOT_FOUND;
 }
 
-void confirmAndSaveTransaction(int amount, sClient& client) {
+void confirmAndSaveTransaction(int amount, float& balance, const std::vector <sClient>& vClients,  bool isWithdraw) {
 
-    if (confirmTransaction(amount, client.balance)) {
+    if (confirmTransaction(amount, balance, isWithdraw)) {
 
-        saveClientToFile(client);
+        saveClientsToFile(vClients);
     }
 }
 
-bool processQuickWithdraw(eQuickWithdraw choice, sClient& client) {
+int getQuickWithdrawValue(eQuickWithdraw value) {
+
+    switch (value) {
+
+    case eQuickWithdraw::WITHDRAW_20: return 20;
+
+    case eQuickWithdraw::WITHDRAW_50: return 50;
+
+    case eQuickWithdraw::WITHDRAW_100: return 100;
+
+    case eQuickWithdraw::WITHDRAW_200: return 200;
+
+    case eQuickWithdraw::WITHDRAW_400: return 400;
+
+    case eQuickWithdraw::WITHDRAW_600: return 600;
+
+    case eQuickWithdraw::WITHDRAW_800: return 800;
+
+    case eQuickWithdraw::WITHDRAW_1000: return 1000;
+
+    }
+}
+
+bool processQuickWithdraw(eQuickWithdraw choice, sClient& client, const std::vector <sClient>& vClients) {
 
     if (choice != eQuickWithdraw::EXIT) {
 
-        const int arrValues[] = { 20, 50, 100, 200, 400, 600, 800, 1000 };
-        int amount = arrValues[choice - 1];
+        int amount = getQuickWithdrawValue(choice);
+
 
         if (printAmountExceedBalance(amount, client.balance))
             return false;
 
 
-        else if (confirmTransaction(amount, client.balance)) {
-
-            saveClientToFile(client);
-        }
+        confirmAndSaveTransaction(amount, client.balance, vClients);
+        return true;
     }
-
-    return true;
 }
 
 
@@ -443,7 +452,7 @@ void printQuickWithdrawMenu(float balance) {
 
 // core functions (definition)
 
-void quickWithdraw(sClient& client) {
+void quickWithdraw(sClient& client, const std::vector <sClient>& vClients) {
 
     while (true) {
 
@@ -451,7 +460,7 @@ void quickWithdraw(sClient& client) {
 
         eQuickWithdraw choice = (eQuickWithdraw)readMenuChoice(1, 9);
 
-        if (processQuickWithdraw(choice, client))
+        if (processQuickWithdraw(choice, client, vClients))
             break;
 
 
@@ -462,7 +471,7 @@ void quickWithdraw(sClient& client) {
     returnToScreen();
 }
 
-void normalWithdraw(sClient& client) {
+void normalWithdraw(sClient& client, const std::vector <sClient>& vClients) {
 
     int amount;
 
@@ -472,39 +481,37 @@ void normalWithdraw(sClient& client) {
         std::cout << "\tNormal Withdraw Screen\n";
         std::cout << "===================================\n";
 
+        int amountMultiple = 5;
 
         do {
 
-            amount = readPositiveNum("Enter an amount multiple of 5's:");
+            amount = readPositiveNum("Enter an amount multiple of " + std::to_string(amountMultiple) + "'s:");
 
-        } while (amount % 5 != 0);
+        } while (amount % amountMultiple != 0);
 
 
         if (!printAmountExceedBalance(amount, client.balance))
             break;
 
 
-        returnToScreen("Normal Withdraw Screen");
+        returnToScreen("Normal Withdraw");
         clearScreen();
     }
 
-    confirmAndSaveTransaction(amount, client);
+    confirmAndSaveTransaction(amount, client.balance, vClients);
 
     returnToScreen();
 }
 
-void Deposit(sClient& client) {
+void Deposit(sClient& client, const std::vector <sClient>& vClients) {
 
     std::cout << "===================================\n";
     std::cout << "\tDeposit Screen\n";
     std::cout << "===================================\n";
 
-    int amount = readPositiveNum("Enter deposit amount:");
+    int amount = readPositiveNum("Enter deposit amount: ", CURRENCY);
 
-    if (confirmTransaction(amount, client.balance, false)) {
-
-        saveClientToFile(client);
-    }
+    confirmAndSaveTransaction(amount, client.balance, vClients, false);
 
     returnToScreen();
 }
@@ -520,7 +527,7 @@ void showBalance(float balance) {
     returnToScreen();
 }
 
-void applyMenuChoice(eMainMenu choice, sClient& client) {
+void applyMenuChoice(eMainMenu choice, sClient& client, const std::vector <sClient>& vClients) {
 
     clearScreen();
 
@@ -528,17 +535,17 @@ void applyMenuChoice(eMainMenu choice, sClient& client) {
 
     case eMainMenu::QUICK_WITHDRAW:
 
-        quickWithdraw(client);
+        quickWithdraw(client, vClients);
         break;
 
     case eMainMenu::NORMAL_WITHDRAW:
 
-        normalWithdraw(client);
+        normalWithdraw(client, vClients);
         break;
 
     case eMainMenu::DEPOSIT:
 
-        Deposit(client);
+        Deposit(client, vClients);
         break;
 
     case eMainMenu::SHOW_BALANCE:
@@ -553,7 +560,7 @@ void applyMenuChoice(eMainMenu choice, sClient& client) {
     }
 }
 
-void startProgram(sClient& client) {
+void startProgram(sClient& client, const std::vector <sClient>& vClients) {
 
     eMainMenu choice;
 
@@ -562,18 +569,13 @@ void startProgram(sClient& client) {
         printMainMenu();
         choice = (eMainMenu)readMenuChoice(1, 5);
 
-        applyMenuChoice(choice, client);
+        applyMenuChoice(choice, client, vClients);
 
     } while (choice != eMainMenu::LOGOUT);
 }
 
-void Login() {
+sClient processLoginAndGetClient(const std::vector <sClient>& vClients) {
 
-    std::cout << "===============================\n";
-    std::cout << "\tLogin Screen\n";
-    std::cout << "===============================\n";
-
-    std::vector <sClient> vClients = loadClientsFromFile();
     sClient client;
     int index;
 
@@ -592,9 +594,22 @@ void Login() {
     client.phoneNum = vClients[index].phoneNum;
     client.balance = vClients[index].balance;
 
+    return client;
+}
+
+void Login() {
+
+    std::cout << "===============================\n";
+    std::cout << "\tLogin Screen\n";
+    std::cout << "===============================\n";
+
+    std::vector <sClient> vClients = loadClientsFromFile();
+    
+    sClient client = processLoginAndGetClient(vClients);
+
     clearScreen();
 
-    startProgram(client);
+    startProgram(client, vClients);
 }
 
 int main() {
