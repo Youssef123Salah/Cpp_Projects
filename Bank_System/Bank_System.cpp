@@ -28,7 +28,7 @@ namespace menu {
 }
 
 
-// types (enums & structs)
+// types --> enums & structs
 
 enum eMainMenu {
 
