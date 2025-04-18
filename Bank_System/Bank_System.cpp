@@ -138,9 +138,10 @@ sClient clientLineToRecord(const std::string& line);
 
 sUser userLineToRecord(const std::string& line);
 
-std::string clientRecordToLine(const sClient& client);
+std::string recordToLine(const sClient& client);
 
 void returnToMenu(const std::string& menu = menu::MAIN);
+
 
 void processUpdating(const std::string& accountNum, std::vector <sClient>& vClients);
 
@@ -177,7 +178,7 @@ void printClientsListHeader(int numOfClients);
 
 void printClientRecord(const sClient& client);
 
-void printClientCard(const sClient& client);
+void printCard(const sClient& client);
 
 void printClientNotFound(const std::string& accountNum);
 
@@ -189,7 +190,7 @@ void printManageUsersMenu();
 
 void printUsersListHeader(int numOfUsers);
 
-void printUserCard(const sUser& user);
+void printCard(const sUser& user);
 
 void printUserNotFound(const std::string& username);
 
@@ -198,13 +199,11 @@ void printAccessDenied();
 
 // data functions (declaration)
 
-std::vector <sClient> loadClientsFromFile();
+template <class T>
+std::vector <T> loadCustomersFromFile(const std::string& fileName = file::CLIENTS_FILE);
 
-std::vector <sUser> loadUsersFromFile();
-
-void saveClientsToFile(const std::vector <sClient> vClients);
-
-void saveUsersToFile(const std::vector <sUser> vUsers);
+template <class T>
+void saveCustomersToFile(const std::vector <T> vClients, const std::string& fileName = file::CLIENTS_FILE);
 
 
 // core functions (declaration)
@@ -478,7 +477,7 @@ sUser readUserData(const std::vector <sUser>& vUsers) {
 void addClient(const std::vector <sClient>& vClients) {
 
     sClient client = readClientData(vClients);
-    addLineToFile(clientRecordToLine(client), file::CLIENTS_FILE);
+    addLineToFile(recordToLine(client), file::CLIENTS_FILE);
 }
 
 int getClientIndexByAccountNum(const std::string& accountNum, const std::vector <sClient>& vClients) {
@@ -525,7 +524,7 @@ sUser userLineToRecord(const std::string& line) {
     return user;
 }
 
-std::string clientRecordToLine(const sClient& client) {
+std::string recordToLine(const sClient& client) {
 
     std::string line = "";
 
@@ -563,7 +562,7 @@ void processUpdating(const std::string& accountNum, std::vector <sClient>& vClie
 
     if (isClientExistsByIndex(index)) {
 
-        printClientCard(vClients[index]);
+        printCard(vClients[index]);
 
         char sureToUpdate = readChar("\nAre you sure you want to update client data (Y/N):");
 
@@ -572,7 +571,7 @@ void processUpdating(const std::string& accountNum, std::vector <sClient>& vClie
             std::cout << '\n';
 
             readUpdatedClientData(vClients[index]);
-            saveClientsToFile(vClients);
+            saveCustomersToFile(vClients);
         }
     }
 
@@ -586,15 +585,15 @@ void processRemoving(const std::string& accountNum, std::vector <sClient>& vClie
 
     if (isClientExistsByIndex(index)) {
 
-        printClientCard(vClients[index]);
+        printCard(vClients[index]);
 
         char sureToUpdate = readChar("\nAre you sure you want to remove client (Y/N):");
 
         if (toupper(sureToUpdate) == 'Y') {
 
             vClients[index].isDeleted = true;
-            saveClientsToFile(vClients);
-            vClients = loadClientsFromFile();
+            saveCustomersToFile(vClients);
+            vClients = loadCustomersFromFile();
         }
     }
 
@@ -666,15 +665,15 @@ void processRemoving(int index, std::vector <sUser>& vUsers) {
 
         else {
 
-            printUserCard(vUsers[index]);
+            printCard(vUsers[index]);
 
             char sureToDelete = readChar("\nAre you sure you want to delete this user (Y/N):");
 
             if (toupper(sureToDelete) == 'Y') {
 
                 vUsers[index].isDeleted = true;
-                saveUsersToFile(vUsers);
-                vUsers = loadUsersFromFile();
+                saveCustomersToFile(vUsers, file::USERS_FILE);
+                vUsers = loadCustomersFromFile();
 
                 std::cout << "\nUser Deleted Successfully!\n";
             }
@@ -695,14 +694,14 @@ void processUpdating(int index, std::vector <sUser> vUsers) {
 
         else {
 
-            printUserCard(vUsers[index]);
+            printCard(vUsers[index]);
 
             char sureToUpdate = readChar("\nAre you sure you want to update this user info (Y/N):");
 
             vUsers[index].password = readPositiveNum("\nEnter new password:");
             vUsers[index].permissions = readPermissionsToSet();
 
-            saveUsersToFile(vUsers);
+            saveCustomersToFile(vUsers, file::USERS_FILE);
 
             std::cout << "\nUser Updated Successfully\n";
         }
@@ -719,7 +718,7 @@ void processTransactions(std::vector <sClient>& vClients, bool isDeposit = true)
 
     if (isClientExistsByIndex(index)) {
 
-        printClientCard(vClients[index]);
+        printCard(vClients[index]);
 
         std::string transaction = (isDeposit) ? "deposit" : "withdraw";
 
@@ -727,7 +726,7 @@ void processTransactions(std::vector <sClient>& vClients, bool isDeposit = true)
 
         if (confirmTransaction(amount, vClients[index].balance, isDeposit)) {
 
-            saveClientsToFile(vClients);
+            saveCustomersToFile(vClients, file::USERS_FILE);
         }
     }
 
@@ -803,7 +802,7 @@ void printClientRecord(const sClient& client) {
     std::cout << "| $" << std::setw(10) << client.balance << '\n';
 }
 
-void printClientCard(const sClient& client) {
+void printCard(const sClient& client) {
 
     std::cout << "\nAccount Number: " << client.accountNum;
     std::cout << "\nPincode: " << client.pincode;
@@ -867,7 +866,7 @@ void printUsersListHeader(int numOfUsers) {
     std::cout << "\n\n--------------------------------------------------------------------------------------------\n";
 }
 
-void printUserCard(const sUser& user) {
+void printCard(const sUser& user) {
 
     std::cout << "\nUsername: " << user.name;
     std::cout << "\nPassword: " << user.password;
@@ -888,13 +887,14 @@ void printAccessDenied() {
 
 // data functions (definition)
 
-std::vector <sClient> loadClientsFromFile() {
+template <class T>
+std::vector <T> loadCustomersFromFile(const std::string& fileName) {
 
     std::fstream file;
 
     file.open(file::CLIENTS_FILE, std::ios::in);
 
-    std::vector <sClient> vClients;
+    std::vector <T> vCustomers;
 
     if (file.is_open()) {
 
@@ -902,78 +902,35 @@ std::vector <sClient> loadClientsFromFile() {
 
         while (std::getline(file, line)) {
 
-            sClient client = clientLineToRecord(line);
-            vClients.push_back(client);
+            T client = clientLineToRecord(line);
+            vCustomers.push_back(client);
         }
 
         file.close();
     }
 
-    return vClients;
+    return vCustomers;
 }
 
-void saveClientsToFile(const std::vector <sClient> vClients) {
+template <class T>
+void saveCustomersToFile(const std::vector <T> vCustomers, const std::string& fileName) {
 
     std::fstream file;
 
-    file.open(file::CLIENTS_FILE, std::ios::out);
+    file.open(fileName, std::ios::out);
 
     if (file.is_open()) {
 
-        for (const sClient& client : vClients) {
+        for (const T& customer : vCustomers) {
 
-            if (client.isDeleted == false) {
+            if (customer.isDeleted == false) {
 
-                file << clientRecordToLine(client) << '\n';
+                file << recordToLine(customer) << '\n';
             }
         }
 
         file.close();
     }
-}
-
-void saveUsersToFile(const std::vector <sUser> vUsers) {
-
-    std::fstream file;
-
-    file.open(file::USERS_FILE, std::ios::out);
-
-    if (file.is_open()) {
-
-        for (const sUser& user : vUsers) {
-
-            if (user.isDeleted == false) {
-
-                file << userRecordToLine(user) << '\n';
-            }
-        }
-
-        file.close();
-    }
-}
-
-std::vector <sUser> loadUsersFromFile() {
-
-    std::fstream file;
-
-    file.open(file::USERS_FILE, std::ios::in);
-
-    std::vector <sUser> vUsers;
-
-    if (file.is_open()) {
-
-        std::string line;
-
-        while (std::getline(file, line)) {
-
-            sUser user = userLineToRecord(line);
-            vUsers.push_back(user);
-        }
-
-        file.close();
-    }
-
-    return vUsers;
 }
 
 
@@ -992,7 +949,7 @@ void addClients(sUser& user) {
         std::cout << "\t\t\tAdd New Client\n";
         std::cout << "\t\t----------------------------\n\n";
 
-        std::vector <sClient> vClients = loadClientsFromFile();
+        std::vector <sClient> vClients = loadCustomersFromFile();
 
         char addOtherClient;
 
@@ -1024,7 +981,7 @@ void showAllClients(const sUser& user) {
         std::cout << "\t\t\tShow All Clients\n";
         std::cout << "\t\t----------------------------\n";
 
-        std::vector <sClient> vClients = loadClientsFromFile();
+        std::vector <sClient> vClients = loadCustomersFromFile();
 
         printClientsListHeader(vClients.size());
 
@@ -1053,7 +1010,7 @@ void updateClient(const sUser& user) {
         std::cout << "\t\t\tUpdate Client\n";
         std::cout << "\t\t---------------------------\n\n";
 
-        std::vector <sClient> vClients = loadClientsFromFile();
+        std::vector <sClient> vClients = loadCustomersFromFile();
 
         std::string accountNum = readAccountNum();
 
@@ -1078,7 +1035,7 @@ void removeClient(const sUser& user) {
     std::cout << "\t\t\tRemove Client\n";
     std::cout << "\t\t----------------------------\n\n";
 
-    std::vector <sClient> vClients = loadClientsFromFile();
+    std::vector <sClient> vClients = loadCustomersFromFile();
 
     std::string accountNum = readAccountNum();
 
@@ -1101,7 +1058,7 @@ void findClient(const sUser& user) {
     std::cout << "\t\t\tFind Client\n";
     std::cout << "\t\t------------------------\n\n";
 
-    std::vector <sClient> vClients = loadClientsFromFile();
+    std::vector <sClient> vClients = loadCustomersFromFile();
 
     std::string accountNum = readAccountNum();
 
@@ -1109,7 +1066,7 @@ void findClient(const sUser& user) {
 
     if (isClientExistsByIndex(index)) {
 
-        printClientCard(vClients[index]);
+        printCard(vClients[index]);
     }
 
     else
@@ -1125,7 +1082,7 @@ void Deposit() {
     std::cout << "\t\t\tDeposit\n";
     std::cout << "\t\t------------------------\n\n";
 
-    std::vector <sClient> vClients = loadClientsFromFile();
+    std::vector <sClient> vClients = loadCustomersFromFile();
 
     processTransactions(vClients);
 
@@ -1138,7 +1095,7 @@ void Withdraw() {
     std::cout << "\t\t\tWithdraw\n";
     std::cout << "\t\t------------------------\n\n";
 
-    std::vector <sClient> vClients = loadClientsFromFile();
+    std::vector <sClient> vClients = loadCustomersFromFile();
 
     processTransactions(vClients, false);
 
@@ -1151,7 +1108,7 @@ void showAllBalances() {
     std::cout << "\t\t\tShow All Balances\n";
     std::cout << "\t\t-------------------------------\n";
 
-    std::vector <sClient> vClients = loadClientsFromFile();
+    std::vector <sClient> vClients = loadCustomersFromFile();
 
     printBalancesListHeader(vClients.size());
 
@@ -1232,7 +1189,7 @@ void addUsers() {
     std::cout << "\t\t\tAdd User\n";
     std::cout << "\t\t-------------------------\n";
 
-    std::vector <sUser> vUsers = loadUsersFromFile();
+    std::vector <sUser> vUsers = loadCustomersFromFile(file::USERS_FILE);
 
     std::cout << "\nAdding New User:\n\n";
 
@@ -1257,7 +1214,7 @@ void showAllUsers() {
     std::cout << "\t\t\tShow All Users\n";
     std::cout << "\t\t----------------------------\n";
 
-    std::vector <sUser> vUsers = loadUsersFromFile();
+    std::vector <sUser> vUsers = loadCustomersFromFile();
 
     printUsersListHeader(vUsers.size());
 
@@ -1277,7 +1234,7 @@ void updateUser() {
     std::cout << "\t\t\tUpdate User\n";
     std::cout << "\t\t-----------------------------\n\n";
 
-    std::vector <sUser> vUsers = loadUsersFromFile();
+    std::vector <sUser> vUsers = loadCustomersFromFile();
 
     std::string username = readUsername();
     int index = getUserIndexByName(username, vUsers);
@@ -1293,7 +1250,7 @@ void removeUser() {
     std::cout << "\t\t\tDelete User\n";
     std::cout << "\t\t-----------------------------\n\n";
 
-    std::vector <sUser> vUsers = loadUsersFromFile();
+    std::vector <sUser> vUsers = loadCustomersFromFile();
 
     std::string username = readUsername();
     int index = getUserIndexByName(username, vUsers);
@@ -1310,14 +1267,14 @@ void findUser() {
     std::cout << "\t\t\tFind User\n";
     std::cout << "\t\t-----------------------------\n";
 
-    std::vector <sUser> vUsers = loadUsersFromFile();
+    std::vector <sUser> vUsers = loadCustomersFromFile();
 
     std::string username = readUsername();
     int index = getUserIndexByName(username, vUsers);
 
     if (isUserExistsByIndex(index)) {
 
-        printUserCard(vUsers[index]);
+        printCard(vUsers[index]);
     }
 
     else
@@ -1454,7 +1411,7 @@ void Login() {
     std::cout << "\t\t\tLogin Screen\n";
     std::cout << "\t\t----------------------------\n\n";
 
-    std::vector <sUser> vUsers = loadUsersFromFile();
+    std::vector <sUser> vUsers = loadCustomersFromFile();
     sUser user;
 
     while (true) {
